@@ -9,10 +9,10 @@
 #include <variant>
 
 namespace posdk {
-    class RuntimeError : public std::runtime_error {
+    class JsonError : public std::runtime_error {
     public:
-        inline RuntimeError(const std::string& format) : runtime_error(format) {}
-        inline RuntimeError(const std::string& format, const std::string& p1) : runtime_error(format + p1) {}
+        inline JsonError(const std::string& format) : runtime_error(format) {}
+        inline JsonError(const std::string& format, const std::string& p1) : runtime_error(format + p1) {}
     };
 
     /// \brief class representing an Json parser
@@ -103,28 +103,28 @@ namespace posdk {
 
             inline iterator begin() const {
                 if(!isContainer()) {
-                    throw posdk::RuntimeError("attempting to iterate-begin on non-container");
+                    throw posdk::JsonError("attempting to iterate-begin on non-container");
                 }
                 return items_.begin();
             }
 
             inline iterator end() const {
                 if(!isContainer()) {
-                    throw posdk::RuntimeError("attempting to iterate-end on non-container");
+                    throw posdk::JsonError("attempting to iterate-end on non-container");
                 }
                 return items_.end();
             }
 
             inline auto size() const {
                 if(!isContainer()) {
-                    throw posdk::RuntimeError("attempting to get size on non-container");
+                    throw posdk::JsonError("attempting to get size on non-container");
                 }
                 return items_.size();
             }
 
             inline auto& items() const {
                 if(!isContainer()) {
-                    throw posdk::RuntimeError("attempting to get items on non-container");
+                    throw posdk::JsonError("attempting to get items on non-container");
                 }
                 return items_;
             }
@@ -132,10 +132,10 @@ namespace posdk {
             template <typename ValT>
             inline auto getValue() const {
                 if(dataType_ != DataType::Value) {
-                    throw posdk::RuntimeError("attempting to get value on non-value");
+                    throw posdk::JsonError("attempting to get value on non-value");
                 }
                 if(!isValue<ValT>()){
-                    throw posdk::RuntimeError("unexpected value type in JSON node");
+                    throw posdk::JsonError("unexpected value type in JSON node");
                 }
                 return std::get<ValT>(value);
             }
@@ -145,10 +145,10 @@ namespace posdk {
             template <typename ValT>
             inline ValT get(const std::string& key) const {
                 if(key.size() == 0) {
-                    throw posdk::RuntimeError("key length is zero");
+                    throw posdk::JsonError("key length is zero");
                 }
                 if(dataType_ != DataType::Object) {
-                    throw posdk::RuntimeError("attempting to get key {0} on non-object", key);
+                    throw posdk::JsonError("attempting to get key {0} on non-object", key);
                 }
                 auto vit = find(key);
                 return vit->second->getValue<ValT>();
@@ -156,10 +156,10 @@ namespace posdk {
 
             inline Tree& getChild(const std::string& key) const {
                 if(key.size() == 0) {
-                    throw posdk::RuntimeError("key length is zero");
+                    throw posdk::JsonError("key length is zero");
                 }
                 if(dataType_ != DataType::Object) {
-                    throw posdk::RuntimeError("attempting to get child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to get child {0} on non-object", key);
                 }
                 auto vit = find(key);
                 return *(vit->second);
@@ -167,7 +167,7 @@ namespace posdk {
 
             inline const Tree* hasChild(const std::string& key) const {
                 if(key.size() == 0) {
-                    throw posdk::RuntimeError("key length is zero");
+                    throw posdk::JsonError("key length is zero");
                 }
                 if(dataType_ != DataType::Object){
                     return nullptr;
@@ -183,10 +183,10 @@ namespace posdk {
             template <typename ValT>
             inline Tree& add(const std::string& key, const ValT& val) {
                 if(key.size() == 0) {
-                    throw posdk::RuntimeError("key length is zero");
+                    throw posdk::JsonError("key length is zero");
                 }
                 if(dataType_ != DataType::Object){
-                    throw posdk::RuntimeError("attempting to add child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to add child {0} on non-object", key);
                 }
                 items_.push_back(std::make_pair(key, Tree(val)));
                 Tree& t = items_.back().second;
@@ -196,10 +196,10 @@ namespace posdk {
 
             inline Tree& add(const std::string& key, const Tree& val) {
                 if(key.size() == 0) {
-                    throw posdk::RuntimeError("key length is zero");
+                    throw posdk::JsonError("key length is zero");
                 }
                 if(dataType_ != DataType::Object){
-                    throw posdk::RuntimeError("attempting to add child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to add child {0} on non-object", key);
                 }
                 items_.push_back(std::make_pair(key, val));
                 Tree& t = items_.back().second;
@@ -214,7 +214,7 @@ namespace posdk {
             template <typename ValT>
             inline void set(const std::string& key, const ValT& val) {
                 if(dataType_ != DataType::Object){
-                    throw posdk::RuntimeError("attempting to erase child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to erase child {0} on non-object", key);
                 }
                 for(auto iit = items_.begin(), iite = items_.end(); iit != iite; ++iit){
                     if(iit->first == key){
@@ -222,12 +222,12 @@ namespace posdk {
                         return;
                     }
                 }
-                throw posdk::RuntimeError("attempting to set non-existent key: {0}", key);
+                throw posdk::JsonError("attempting to set non-existent key: {0}", key);
             }
 
             inline void set(const std::string& key, const Tree& val) {
                 if(dataType_ != DataType::Object){
-                    throw posdk::RuntimeError("attempting to erase child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to erase child {0} on non-object", key);
                 }
                 for(auto iit = items_.begin(), iite = items_.end(); iit != iite; ++iit){
                     if(iit->first == key){
@@ -235,27 +235,27 @@ namespace posdk {
                         return;
                     }
                 }
-                throw posdk::RuntimeError("attempting to set non-existent key: {0}", key);
+                throw posdk::JsonError("attempting to set non-existent key: {0}", key);
             }
 
             template <typename ValT>
             inline void add(const ValT& val) {
                 if(dataType_ != DataType::Array){
-                    throw posdk::RuntimeError("attempting to add item on non-array");
+                    throw posdk::JsonError("attempting to add item on non-array");
                 }
                 items_.push_back(std::make_pair("", Tree(val)));
             }
 
             inline void add(const Tree& val) {
                 if(dataType_ != DataType::Array){
-                    throw posdk::RuntimeError("attempting to add item on non-array");
+                    throw posdk::JsonError("attempting to add item on non-array");
                 }
                 items_.push_back(std::make_pair("", val));
             }
 
             inline void erase(const std::string& key) {
                 if(dataType_ != DataType::Object){
-                    throw posdk::RuntimeError("attempting to erase child {0} on non-object", key);
+                    throw posdk::JsonError("attempting to erase child {0} on non-object", key);
                 }
                 for(auto iit = items_.begin(), iite = items_.end(); iit != iite; ++iit){
                     if(iit->first == key){

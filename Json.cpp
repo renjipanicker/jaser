@@ -1,4 +1,4 @@
-#include "Json.hpp"
+#include "jaser/Json.hpp"
 #include <fstream>
 #include <assert.h>
 
@@ -67,7 +67,7 @@ namespace {
         inline void next() {
             if(ch_ != peek_()) {
                 ASSERT(false);
-                throw posdk::RuntimeError("{0}: internal error in json", pos());
+                throw posdk::JsonError("{0}: internal error in json", pos());
             }
 
             in_.get();
@@ -157,7 +157,7 @@ namespace {
 
                         default:
                             ASSERT(false);
-                            throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                            throw posdk::JsonError("{0}: invalid char in json", in.pos());
                     }
                     break;
 
@@ -278,7 +278,7 @@ namespace {
 
                         default:
                             ASSERT(false);
-                            throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                            throw posdk::JsonError("{0}: invalid char in json", in.pos());
                     }
                     break;
 
@@ -296,7 +296,7 @@ namespace {
 
                         default:
                             ASSERT(false);
-                            throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                            throw posdk::JsonError("{0}: invalid char in json", in.pos());
                     }
                     break;
 
@@ -327,7 +327,7 @@ namespace {
                             
                         default:
                             ASSERT(false);
-                            throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                            throw posdk::JsonError("{0}: invalid char in json", in.pos());
                     }
                     break;
 
@@ -344,7 +344,7 @@ namespace {
 
                         default:
                             ASSERT(false);
-                            throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                            throw posdk::JsonError("{0}: invalid char in json", in.pos());
                     }
                     break;
                 case ParserState::TokenTrue_t:
@@ -354,7 +354,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenTrue_tr:
                     if(ch == 'u'){
                         in.next();
@@ -362,7 +362,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenTrue_tru:
                     if(ch == 'e'){
                         in.next();
@@ -370,7 +370,7 @@ namespace {
                         return;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenFalse_f:
                     if(ch == 'a'){
                         in.next();
@@ -378,7 +378,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenFalse_fa:
                     if(ch == 'l'){
                         in.next();
@@ -386,7 +386,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenFalse_fal:
                     if(ch == 's'){
                         in.next();
@@ -394,7 +394,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenFalse_fals:
                     if(ch == 'e'){
                         in.next();
@@ -402,7 +402,7 @@ namespace {
                         return;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenNull_n:
                     if(ch == 'u'){
                         in.next();
@@ -410,7 +410,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenNull_nu:
                     if(ch == 'l'){
                         in.next();
@@ -418,7 +418,7 @@ namespace {
                         break;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
                 case ParserState::TokenNull_nul:
                     if(ch == 'l'){
                         in.next();
@@ -426,12 +426,12 @@ namespace {
                         return;
                     }
                     ASSERT(false);
-                    throw posdk::RuntimeError("{0}: invalid char in json", in.pos());
+                    throw posdk::JsonError("{0}: invalid char in json", in.pos());
             }
         }
 
         ASSERT(false);
-        throw posdk::RuntimeError("{0}: unexpected EOF in json", in.pos());
+        throw posdk::JsonError("{0}: unexpected EOF in json", in.pos());
     }
 
     struct Print {
@@ -473,7 +473,7 @@ namespace {
 std::map<std::string, posdk::Json::Tree*>::const_iterator posdk::Json::Tree::find(const std::string& key) const {
     auto vit = names.find(key);
     if(vit == names.end()){
-        throw posdk::RuntimeError("json key not found:" + key);
+        throw posdk::JsonError("json key not found:" + key);
     }
     return vit;
 }
@@ -551,7 +551,7 @@ posdk::Json::Tree posdk::Json::loadFromFile(const std::string& filename) {
     posdk::Json::Tree tree(posdk::Json::DataType::Value);
     std::ifstream ifs(filename);
     if(!ifs) {
-        throw posdk::RuntimeError("file not found:" + filename);
+        throw posdk::JsonError("file not found:" + filename);
     }
     load(ifs, filename, tree);
     return tree;

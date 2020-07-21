@@ -141,6 +141,17 @@ namespace posdk {
                 return posdk::Json::Tree(val);
             }
 
+            // monostate
+            template <>
+            inline std::monostate j2v<std::monostate>(const posdk::Json::Tree&, const specializer_basic&) {
+                return std::monostate();
+            }
+
+            template <>
+            inline posdk::Json::Tree v2j<std::monostate>(const std::monostate&, const specializer_basic&) {
+                return posdk::Json::Tree();
+            }
+
             // json::Tree
             template <>
             inline posdk::Json::Tree j2v<posdk::Json::Tree>(const posdk::Json::Tree& jval, const specializer_basic&) {
@@ -161,28 +172,6 @@ namespace posdk {
             template <>
             inline posdk::Json::Tree v2j<double>(const double& val, const specializer_basic&) {
                 return posdk::Json::Tree(static_cast<posdk::Json::float_t>(val));
-            }
-
-            // long long
-            template <>
-            inline long long j2v<long long>(const posdk::Json::Tree& jval, const specializer_basic&) {
-                return static_cast<long long>(jval.getValue<posdk::Json::integer_t>());
-            }
-
-            template <>
-            inline posdk::Json::Tree v2j<long long>(const long long& val, const specializer_basic&) {
-                return posdk::Json::Tree(static_cast<posdk::Json::integer_t>(val));
-            }
-
-            // unsigned long long
-            template <>
-            inline unsigned long long j2v<unsigned long long>(const posdk::Json::Tree& jval, const specializer_basic&) {
-                return static_cast<unsigned long long>(jval.getValue<posdk::Json::integer_t>());
-            }
-
-            template <>
-            inline posdk::Json::Tree v2j<unsigned long long>(const unsigned long long& val, const specializer_basic&) {
-                return posdk::Json::Tree(static_cast<posdk::Json::integer_t>(val));
             }
 
             // int64_t
@@ -297,7 +286,7 @@ namespace posdk {
 
             // variant helpers. these need to be at the bottom of the list
             template <typename... ValT>
-            inline void j2v_variant(const posdk::Json::Tree& jval, std::variant<ValT...>& val){
+            inline void j2v_variant(const posdk::Json::Tree& jval, std::variant<ValT...>& val) {
                 auto varidx = jval.get<size_t>("__varidx__");
                 auto& jdata = jval.getChild("__data__");
                 assert(varidx < sizeof...(ValT));
@@ -310,6 +299,7 @@ namespace posdk {
                         typedef typename std::remove_const<ConstType>::type Type;
 
                         val = Json_::j2v<Type>(jdata, Json_::specializer());
+                        return;
                     }
                 });
             }
@@ -352,10 +342,10 @@ namespace posdk {
 
             // map helpers
             template <typename KeyT, typename ValT>
-            inline void j2v_map(const posdk::Json::Tree& jval, std::map<KeyT,ValT>& val) {
-                for(auto& jdata : jval){
-                    auto& jkey = jdata.second.getChild("__key__");
-                    auto& jval = jdata.second.getChild("__val__");
+            inline void j2v_map(const posdk::Json::Tree& jmap, std::map<KeyT,ValT>& val) {
+                for(auto& jitem : jmap){
+                    auto& jkey = jitem.second.getChild("__key__");
+                    auto& jval = jitem.second.getChild("__val__");
                     auto akey = Json_::j2v<KeyT>(jkey, specializer());
                     auto aval = Json_::j2v<ValT>(jval, specializer());
                     val[akey] = aval;
@@ -375,6 +365,19 @@ namespace posdk {
                 }
                 return jret;
             }
+        }
+
+        /// \brief convert from JSON
+        template <typename ValT>
+        inline ValT j2v(const posdk::Json::Tree& jval) {
+            return Json_::j2v<ValT>(jval, Json_::specializer());
+        }
+
+        /// \brief convert to JSON
+        template <typename ValT>
+        inline posdk::Json::Tree v2j(const ValT& val) {
+            auto jval = Json_::v2j<ValT>(val, Json_::specializer());
+            return jval;
         }
 
         /// \brief convert from JSON
